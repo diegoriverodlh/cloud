@@ -1,0 +1,23 @@
+config {
+  type: "table",
+  schema: "staging_dataset",
+  description: "Tabla de clientes limpios y unificados",
+  assertions: {
+    uniqueKey: ["customer_id"],
+    nonNull: ["customer_id", "email"]
+  },
+  columns: {
+    customer_id: "ID único de cliente",
+    full_name: "Nombre completo del cliente",
+    email: "Correo electrónico en minúsculas",
+    created_at: "Fecha de registro del cliente"
+  }
+}
+
+SELECT
+  CAST(id AS STRING) AS customer_id,
+  CONCAT(first_name, ' ', last_name) AS full_name,
+  LOWER(email_address) AS email,
+  TIMESTAMP(signup_date) AS created_at
+FROM ${ref("raw_dataset", "raw_customers")}
+WHERE status = 'ACTIVE'
