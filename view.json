@@ -1,0 +1,45 @@
+{
+  "model_name": "dim_products",
+  "config": {
+    "type": "view",
+    "schema": "marts_dataset",
+    "description": "Dimensión de productos enriquecida con categorías",
+    "assertions": {
+      "uniqueKey": ["product_id"],
+      "nonNull": ["product_id", "product_name"]
+    }
+  },
+  "dependencies": [
+    {
+      "name": "raw_products",
+      "schema": "raw_dataset"
+    },
+    {
+      "name": "raw_categories",
+      "schema": "raw_dataset"
+    }
+  ],
+  "columns": [
+    {
+      "name": "product_id",
+      "expression": "CAST(sku AS STRING)",
+      "description": "Código SKU del producto"
+    },
+    {
+      "name": "product_name",
+      "expression": "TRIM(title)",
+      "description": "Nombre comercial del producto limpio"
+    },
+    {
+      "name": "price_usd",
+      "expression": "ROUND(unit_price, 2)",
+      "description": "Precio unitario redondeado a dos decimales"
+    },
+    {
+      "name": "is_expensive",
+      "expression": "CASE WHEN unit_price > 100 THEN TRUE ELSE FALSE END",
+      "description": "Flag para identificar productos de alto valor"
+    }
+  ],
+  "where_filter": "is_deleted IS FALSE"
+}

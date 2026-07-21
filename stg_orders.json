@@ -1,0 +1,46 @@
+{
+  "model_name": "stg_orders",
+  "config": {
+    "type": "table",
+    "schema": "staging_dataset",
+    "description": "Tabla de pedidos procesados y normalizados",
+    "assertions": {
+      "uniqueKey": ["order_id"],
+      "nonNull": ["order_id", "customer_id", "order_date"]
+    }
+  },
+  "dependencies": [
+    {
+      "name": "raw_orders",
+      "schema": "raw_dataset"
+    }
+  ],
+  "columns": [
+    {
+      "name": "order_id",
+      "expression": "CAST(id AS STRING)",
+      "description": "Identificador único del pedido"
+    },
+    {
+      "name": "customer_id",
+      "expression": "CAST(user_id AS STRING)",
+      "description": "ID del cliente que realizó la compra"
+    },
+    {
+      "name": "order_date",
+      "expression": "DATE(created_at)",
+      "description": "Fecha en que se realizó el pedido"
+    },
+    {
+      "name": "total_amount",
+      "expression": "COALESCE(subtotal + tax_amount, 0.0)",
+      "description": "Monto total del pedido sumando impuestos"
+    },
+    {
+      "name": "order_status",
+      "expression": "UPPER(status)",
+      "description": "Estado del pedido en mayúsculas (COMPLETED, PENDING, CANCELLED)"
+    }
+  ],
+  "where_filter": "created_at >= '2024-01-01'"
+}

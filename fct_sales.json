@@ -1,0 +1,45 @@
+{
+  "model_name": "fct_sales",
+  "config": {
+    "type": "incremental",
+    "schema": "marts_dataset",
+    "description": "Tabla de hechos de ventas diarias para análisis de negocio",
+    "assertions": {
+      "uniqueKey": ["sale_id"],
+      "nonNull": ["sale_id", "customer_id", "order_id"]
+    }
+  },
+  "dependencies": [
+    {
+      "name": "stg_orders",
+      "schema": "staging_dataset"
+    },
+    {
+      "name": "stg_customers",
+      "schema": "staging_dataset"
+    }
+  ],
+  "columns": [
+    {
+      "name": "sale_id",
+      "expression": "GENERATE_UUID()",
+      "description": "Identificador único de la transacción de venta"
+    },
+    {
+      "name": "order_id",
+      "expression": "stg_orders.order_id",
+      "description": "ID del pedido de origen"
+    },
+    {
+      "name": "customer_id",
+      "expression": "stg_customers.customer_id",
+      "description": "ID del cliente asociado"
+    },
+    {
+      "name": "net_sale_amount",
+      "expression": "stg_orders.total_amount * 0.85",
+      "description": "Monto neto estimado deduciendo comisiones"
+    }
+  ],
+  "where_filter": "stg_orders.order_status = 'COMPLETED'"
+}

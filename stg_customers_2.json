@@ -1,0 +1,46 @@
+{
+  "model_name": "stg_customers",
+  "config": {
+    "type": "table",
+    "schema": "staging_dataset",
+    "description": "Tabla de clientes limpios y unificados",
+    "assertions": {
+      "uniqueKey": ["customer_id"],
+      "nonNull": ["customer_id", "email"]
+    }
+  },
+  "dependencies": [
+    {
+      "name": "raw_customers",
+      "schema": "raw_dataset"
+    }
+  ],
+  "columns": [
+    {
+      "name": "customer_id",
+      "expression": "CAST(id AS STRING)",
+      "description": "ID único de cliente"
+    },
+    {
+      "name": "full_name",
+      "expression": "CONCAT(first_name, ' ', last_name)",
+      "description": "Nombre completo del cliente"
+    },
+    {
+      "name": "email",
+      "expression": "LOWER(email_address)",
+      "description": "Correo electrónico en minúsculas"
+    },
+    {
+      "name": "created_at",
+      "expression": "TIMESTAMP(signup_date)",
+      "description": "Fecha de registro del cliente"
+    },
+        {
+      "name": "COUNTRY",
+      "expression": "LOWER(country of birth)",
+      "description": "País de origen del cliente"
+    }
+  ],
+  "where_filter": "status = 'ACTIVE'"
+}

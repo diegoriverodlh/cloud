@@ -4,7 +4,4 @@ __pycache__/
 
 # Claves y configuracion local
 .env
-local_test.py
-local_test_mock.py
 gcp-key.json
-*.json
