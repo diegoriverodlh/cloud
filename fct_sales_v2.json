@@ -1,0 +1,40 @@
+{
+  "model_name": "fct_sales_v2",
+  "config": {
+    "type": "incremental",
+    "schema": "marts_dataset",
+    "description": "Tabla incremental de hechos de ventas",
+    "assertions": {
+      "uniqueKey": ["sale_id"]
+    }
+  },
+  "sqlx_options": {
+    "use_cte": true,
+    "tags": ["marts", "sales"],
+    "custom_instructions": "Agrega una condición incremental usando 'when incremental() { where order_date > (select max(order_date) from ${self()}) }' al final del bloque de filtrado."
+  },
+  "dependencies": [
+    {
+      "name": "stg_orders",
+      "schema": "staging_dataset"
+    }
+  ],
+  "columns": [
+    {
+      "name": "sale_id",
+      "expression": "order_id",
+      "description": "ID único de venta"
+    },
+    {
+      "name": "order_date",
+      "expression": "order_date",
+      "description": "Fecha de la transacción"
+    },
+    {
+      "name": "revenue_eur",
+      "expression": "total_amount",
+      "description": "Ingresos netos"
+    }
+  ],
+  "where_filter": "order_status = 'COMPLETED'"
+}

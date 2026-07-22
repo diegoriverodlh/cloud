@@ -1,0 +1,48 @@
+{
+  "model_name": "stg_orders_v2",
+  "config": {
+    "type": "table",
+    "schema": "staging_dataset",
+    "description": "Tabla de pedidos con particionado diario y clustering por cliente",
+    "assertions": {
+      "uniqueKey": ["order_id"],
+      "nonNull": ["order_id", "customer_id"]
+    }
+  },
+  "sqlx_options": {
+    "use_cte": true,
+    "partition_by": "DATE(order_date)",
+    "cluster_by": ["customer_id", "order_status"],
+    "tags": ["daily_pipeline", "staging"],
+    "custom_instructions": "Crea una CTE llamada 'raw_data' para la extracción inicial y una CTE 'cleaned_data' antes del SELECT final."
+  },
+  "dependencies": [
+    {
+      "name": "raw_orders",
+      "schema": "raw_dataset"
+    }
+  ],
+  "columns": [
+    {
+      "name": "order_id",
+      "expression": "CAST(id AS STRING)",
+      "description": "ID del pedido"
+    },
+    {
+      "name": "customer_id",
+      "expression": "CAST(user_id AS STRING)",
+      "description": "ID del cliente"
+    },
+    {
+      "name": "order_date",
+      "expression": "TIMESTAMP(created_at)",
+      "description": "Fecha del pedido"
+    },
+    {
+      "name": "order_status",
+      "expression": "UPPER(status)",
+      "description": "Estado del pedido"
+    }
+  ],
+  "where_filter": "status != 'TEST'"
+}
