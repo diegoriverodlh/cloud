@@ -5,3 +5,5 @@ __pycache__/
 # Claves y configuracion local
 .env
 gcp-key.json
+
+DOCUMENTACION.pdf
