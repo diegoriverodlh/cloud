@@ -528,6 +528,11 @@ except Exception as e:
 * Copiar el código fuente en `main.py` y `requirements.txt`.
 * Pulsar en **Desplegar** (*Deploy*).
 
+### Paso 4: Entorno Dataform
+* Creación del repositorio en Dataform
+* Creación del Workspace
+* Editar ruta en main_v2.py para que coincida con estos nuevos datos
+
 ---
 
 ## 6. Hitos de Diagnóstico y Errores Resueltos
