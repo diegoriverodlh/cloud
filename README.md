@@ -454,15 +454,7 @@ def generate_sqlx_from_json(event, context=None):
         raise e
 ```
 
-### 4.2.1 requirements.txt
-
-```text
-google-cloud-storage>=2.14.0
-google-genai>=0.1.1
-cloudevents>=1.10.0
-functions-framework>=3.5.0
-```
-### 4.2.2 requirements_v2.txt
+### 4.2 requirements.txt
 
 ```text
 google-cloud-storage>=2.14.0
