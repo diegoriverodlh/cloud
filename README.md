@@ -848,7 +848,7 @@ except Exception as e:
 ### Paso 4: Entorno Dataform
 * Creación del repositorio en Dataform
 * Creación del Workspace
-* Editar ruta en main_v2.py para que coincida con estos nuevos datos
+* Editar ruta en main.py para que coincida con estos nuevos datos
 
 ---
 
@@ -868,16 +868,51 @@ except Exception as e:
 Los logs de auditoría en Cloud Run / Cloud Functions confirman la ejecución paralela y la adaptación del prompt dinámico para los modelos v2:
 
 ```text
-2026-07-24 10:15:10.120 Procesando archivo: fct_sales.json del bucket: automatizacion-bucket-diego
-2026-07-24 10:15:11.840 Detectadas opciones avanzadas (v2). Adaptando las reglas de Gemini...
-2026-07-24 10:15:14.210 Código SQLX generado exitosamente por Gemini.
-2026-07-24 10:15:14.350 ✔ [GCS] Archivo SQLX guardado en: gs://automatizacion-bucket-diego/output_sqlx/main/fct_sales.sqlx
-2026-07-24 10:15:14.400 Subiendo archivo definitions/staging/fct_sales.sqlx a Dataform (Project: gen-lang-client-0449946907 | Repo: mi-repositorio-dataform | Workspace: dev-workspace)...
-2026-07-24 10:15:14.820 ✔ Archivo guardado correctamente en el workspace de Dataform.
-2026-07-24 10:15:14.830 Compilando proyecto de Dataform...
-2026-07-24 10:15:15.610 ✔ Compilación completada exitosamente: projects/gen-lang-client-0449946907/locations/europe-west1/repositories/mi-repositorio-dataform/compilationResults/12345678
-2026-07-24 10:15:15.620 Iniciando ejecución del modelo en BigQuery...
-2026-07-24 10:15:16.100 ✔ [ÉXITO DATAFORM] Invocación creada. ID: projects/gen-lang-client-0449946907/locations/europe-west1/repositories/mi-repositorio-dataform/workflowInvocations/87654321
-2026-07-24 10:15:16.150 Ignorando archivo no JSON o evento inválido: output_sqlx/main/fct_sales.sqlx
-```
+INFO 2026-07-30T10:13:28.406182Z [httpRequest.requestMethod: POST] [httpRequest.status: 200] [httpRequest.responseSize: 130 B] [httpRequest.latency: 47.437 s] [httpRequest.userAgent: APIs-Google; (+https://developers.google.com/webmasters/APIs-Google.html)] https://function-2-se5qd5x3ca-ew.a.run.app/?__GCP_CloudEventsMode=GCS_NOTIFICATION
+DEFAULT 2026-07-30T10:13:28.429500Z Procesando archivo: tablas.pdf del bucket: automatizacion-bucket-diego
+DEFAULT 2026-07-30T10:13:28.782881Z Detectado archivo PDF. Descargando bytes para Gemini...
+INFO 2026-07-30T10:13:55.093980Z Starting new instance. Reason: AUTOSCALING - Instance started due to configured scaling factors (e.g. CPU utilization, request throughput, etc.) or no existing capacity for current traffic.
+INFO 2026-07-30T10:13:58.432687Z Default STARTUP TCP probe succeeded after 1 attempt for container "worker" on port 8080.
+DEFAULT 2026-07-30T10:14:12.471753Z Respuesta recibida de Gemini. Procesando archivos SQLX...
+DEFAULT 2026-07-30T10:14:12.473016Z --- Procesando modelo final: afb_dimp_ords_v0.sqlx ---
+DEFAULT 2026-07-30T10:14:12.637782Z ✔ [GCS] Archivo SQLX guardado en: gs://automatizacion-bucket-diego/output_sqlx/main/afb_dimp_ords_v0.sqlx
+DEFAULT 2026-07-30T10:14:12.784455Z Subiendo archivo definitions/staging/afb_dimp_ords_v0.sqlx a Dataform...
+DEFAULT 2026-07-30T10:14:13.084293Z ✔ Archivo 'afb_dimp_ords_v0.sqlx' guardado correctamente.
+DEFAULT 2026-07-30T10:14:13.084302Z Compilando proyecto de Dataform...
+INFO 2026-07-30T10:14:13.390015Z [httpRequest.requestMethod: POST] [httpRequest.status: 200] [httpRequest.responseSize: 130 B] [httpRequest.latency: 13 ms] [httpRequest.userAgent: APIs-Google; (+https://developers.google.com/webmasters/APIs-Google.html)] https://function-2-se5qd5x3ca-ew.a.run.app/?__GCP_CloudEventsMode=GCS_NOTIFICATION
+DEFAULT 2026-07-30T10:14:13.409767Z Ignorando archivo no soportado o evento circular: output_sqlx/main/afb_dimp_ords_v0.sqlx
+DEFAULT 2026-07-30T10:14:13.497449Z ✔ Compilación completada: projects/gen-lang-client-0449946907/locations/europe-west1/repositories/mi-repositorio-dataform/compilationResults/ce816c20-37f1-407e-a4ad-a388a07f285b
+DEFAULT 2026-07-30T10:14:13.497458Z Iniciando ejecución del modelo en BigQuery...
+DEFAULT 2026-07-30T10:14:13.626265Z ✔ Target detectado en compilación: 'afb_dimp_ords_v0' (Schema: dataform)
+DEFAULT 2026-07-30T10:14:13.626541Z --- Procesando modelo final: afb_dimp_fundoutstandbalance_v0.sqlx ---
+DEFAULT 2026-07-30T10:14:13.751780Z ✔ [GCS] Archivo SQLX guardado en: gs://automatizacion-bucket-diego/output_sqlx/main/afb_dimp_fundoutstandbalance_v0.sqlx
+DEFAULT 2026-07-30T10:14:13.758942Z Subiendo archivo definitions/staging/afb_dimp_fundoutstandbalance_v0.sqlx a Dataform...
+DEFAULT 2026-07-30T10:14:13.883370Z ✔ Archivo 'afb_dimp_fundoutstandbalance_v0.sqlx' guardado correctamente.
+DEFAULT 2026-07-30T10:14:13.883379Z Compilando proyecto de Dataform...
+DEFAULT 2026-07-30T10:14:14.275483Z ✔ Compilación completada: projects/gen-lang-client-0449946907/locations/europe-west1/repositories/mi-repositorio-dataform/compilationResults/efd62af9-7163-43de-8881-468371d495ad
+DEFAULT 2026-07-30T10:14:14.275491Z Iniciando ejecución del modelo en BigQuery...
+DEFAULT 2026-07-30T10:14:14.347520Z ✔ Target detectado en compilación: 'afb_dimp_fundoutstandbalance_v0' (Schema: dataform)
+DEFAULT 2026-07-30T10:14:14.347861Z --- Procesando modelo final: afb_dimp_etfoutstandbalance_v0.sqlx ---
+INFO 2026-07-30T10:14:14.374444Z [httpRequest.requestMethod: POST] [httpRequest.status: 200] [httpRequest.responseSize: 130 B] [httpRequest.latency: 3 ms] [httpRequest.userAgent: APIs-Google; (+https://developers.google.com/webmasters/APIs-Google.html)] https://function-2-se5qd5x3ca-ew.a.run.app/?__GCP_CloudEventsMode=GCS_NOTIFICATION
+DEFAULT 2026-07-30T10:14:14.378537Z Ignorando archivo no soportado o evento circular: output_sqlx/main/afb_dimp_fundoutstandbalance_v0.sqlx
+DEFAULT 2026-07-30T10:14:14.459942Z ✔ [GCS] Archivo SQLX guardado en: gs://automatizacion-bucket-diego/output_sqlx/main/afb_dimp_etfoutstandbalance_v0.sqlx
+DEFAULT 2026-07-30T10:14:14.467443Z Subiendo archivo definitions/staging/afb_dimp_etfoutstandbalance_v0.sqlx a Dataform...
+DEFAULT 2026-07-30T10:14:14.582714Z ✔ Archivo 'afb_dimp_etfoutstandbalance_v0.sqlx' guardado correctamente.
+DEFAULT 2026-07-30T10:14:14.582732Z Compilando proyecto de Dataform...
+DEFAULT 2026-07-30T10:14:14.962482Z ✔ Compilación completada: projects/gen-lang-client-0449946907/locations/europe-west1/repositories/mi-repositorio-dataform/compilationResults/fb172042-615f-45ec-b043-e67671bc6fb7
+DEFAULT 2026-07-30T10:14:14.962490Z Iniciando ejecución del modelo en BigQuery...
+DEFAULT 2026-07-30T10:14:15.040806Z ✔ Target detectado en compilación: 'afb_dimp_etfoutstandbalance_v0' (Schema: dataform)
+DEFAULT 2026-07-30T10:14:15.041085Z --- Procesando modelo final: afb_dimp_outstandbalancemonitoring_v0.sqlx ---
+INFO 2026-07-30T10:14:15.084194Z [httpRequest.requestMethod: POST] [httpRequest.status: 200] [httpRequest.responseSize: 130 B] [httpRequest.latency: 3 ms] [httpRequest.userAgent: APIs-Google; (+https://developers.google.com/webmasters/APIs-Google.html)] https://function-2-se5qd5x3ca-ew.a.run.app/?__GCP_CloudEventsMode=GCS_NOTIFICATION
+DEFAULT 2026-07-30T10:14:15.088328Z Ignorando archivo no soportado o evento circular: output_sqlx/main/afb_dimp_etfoutstandbalance_v0.sqlx
+DEFAULT 2026-07-30T10:14:15.163718Z ✔ [GCS] Archivo SQLX guardado en: gs://automatizacion-bucket-diego/output_sqlx/main/afb_dimp_outstandbalancemonitoring_v0.sqlx
+DEFAULT 2026-07-30T10:14:15.171393Z Subiendo archivo definitions/staging/afb_dimp_outstandbalancemonitoring_v0.sqlx a Dataform...
+DEFAULT 2026-07-30T10:14:15.299917Z ✔ Archivo 'afb_dimp_outstandbalancemonitoring_v0.sqlx' guardado correctamente.
+DEFAULT 2026-07-30T10:14:15.299940Z Compilando proyecto de Dataform...
+DEFAULT 2026-07-30T10:14:15.783088Z ✔ Compilación completada: projects/gen-lang-client-0449946907/locations/europe-west1/repositories/mi-repositorio-dataform/compilationResults/80b58105-627e-4357-99ed-acd2ecb18213
+DEFAULT 2026-07-30T10:14:15.783108Z Iniciando ejecución del modelo en BigQuery...
+INFO 2026-07-30T10:14:15.792454Z [httpRequest.requestMethod: POST] [httpRequest.status: 200] [httpRequest.responseSize: 130 B] [httpRequest.latency: 3 ms] [httpRequest.userAgent: APIs-Google; (+https://developers.google.com/webmasters/APIs-Google.html)] https://function-2-se5qd5x3ca-ew.a.run.app/?__GCP_CloudEventsMode=GCS_NOTIFICATION
+DEFAULT 2026-07-30T10:14:15.796788Z Ignorando archivo no soportado o evento circular: output_sqlx/main/afb_dimp_outstandbalancemonitoring_v0.sqlx
+DEFAULT 2026-07-30T10:14:15.850297Z ✔ Target detectado en compilación: 'afb_dimp_outstandbalancemonitoring_v0' (Schema: dataform)
+
 ---
