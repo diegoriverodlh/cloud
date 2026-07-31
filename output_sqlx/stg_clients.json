@@ -1,0 +1,18 @@
+{
+  "type": "table",
+  "name": "stg_clients",
+  "schema": "staging",
+  "description": "Tabla staging con información básica normalizada de clientes.",
+  "columns": [
+    { "name": "client_id", "type": "INT64", "description": "Identificador único del cliente", "is_pk": true },
+    { "name": "client_name", "type": "STRING", "description": "Nombre del cliente" },
+    { "name": "distributor_code", "type": "STRING", "description": "Código del distribuidor asignado" },
+    { "name": "created_at", "type": "TIMESTAMP", "description": "Fecha de registro del cliente" }
+  ],
+  "sql_query": "SELECT client_id, UPPER(client_name) AS client_name, distributor_code, created_at FROM `my_project.raw_dataset.raw_clients`",
+  "sqlx_options": {
+    "use_cte": true,
+    "partition_by": "DATE(created_at)",
+    "tags": ["staging", "clients"]
+  }
+}

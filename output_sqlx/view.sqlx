@@ -1,0 +1,24 @@
+config {
+  type: "view",
+  schema: "marts_dataset",
+  description: "Dimensión de productos enriquecida con categorías",
+  columns: {
+    product_id: "Código SKU del producto",
+    product_name: "Nombre comercial del producto limpio",
+    price_usd: "Precio unitario redondeado a dos decimales",
+    is_expensive: "Flag para identificar productos de alto valor"
+  },
+  assertions: {
+    uniqueKey: ["product_id"],
+    nonNull: ["product_id", "product_name"]
+  }
+}
+
+SELECT
+  CAST(p.sku AS STRING) AS product_id,
+  TRIM(p.title) AS product_name,
+  ROUND(p.unit_price, 2) AS price_usd,
+  CASE WHEN p.unit_price > 100 THEN TRUE ELSE FALSE END AS is_expensive
+FROM ${ref("raw_dataset", "raw_products")} AS p
+LEFT JOIN ${ref("raw_dataset", "raw_categories")} AS c ON p.category_id = c.category_id
+WHERE p.is_deleted IS FALSE

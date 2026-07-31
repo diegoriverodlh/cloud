@@ -1,0 +1,23 @@
+config {
+  type: "table"
+}
+
+WITH `distributors` AS (
+    SELECT 
+        n_distributor_code -- PK
+    FROM ${ref("distributors")}
+),
+`tcec0ord` AS (
+    SELECT 
+        cddistri, -- PK
+        nuopera1_amp -- PK
+    FROM ${ref("tcec0ord")}
+)
+
+SELECT
+    d.n_distributor_code,
+    t.cddistri,
+    t.nuopera1_amp
+FROM `distributors` d
+LEFT JOIN `tcec0ord` t
+    ON d.n_distributor_code = t.cddistri

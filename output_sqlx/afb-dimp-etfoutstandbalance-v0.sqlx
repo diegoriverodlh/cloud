@@ -1,0 +1,155 @@
+config {
+  type: "table"
+}
+
+WITH `etf-operations` AS (
+    SELECT 
+        distributor_code, -- PK
+        product_code,
+        num_opera, -- PK
+        etf_code,
+        country_code,
+        depositary_code,
+        currency_code
+    FROM ${ref("etf-operations")}
+),
+`distributors` AS (
+    SELECT 
+        n_distributor_code -- PK
+    FROM ${ref("distributors")}
+),
+`products` AS (
+    SELECT 
+        n_distributor_code, -- PK
+        n_code, -- PK
+        n_entity_group_code
+    FROM ${ref("products")}
+),
+`product-group` AS (
+    SELECT 
+        n_code -- PK
+    FROM ${ref("product-group")}
+),
+`clients` AS (
+    SELECT 
+        n_client_code, -- PK
+        n_group_code -- PK
+    FROM ${ref("clients")}
+),
+`tafvc0cap` AS (
+    SELECT 
+        cddistri, -- PK
+        nuopera -- PK
+    FROM ${ref("tafvc0cap")}
+),
+`depositary-data` AS (
+    SELECT 
+        distributor_code, -- PK
+        depositary_code -- PK
+    FROM ${ref("depositary-data")}
+),
+`etf-basic-data` AS (
+    SELECT 
+        etf_code, -- PK
+        parent_fund_code
+    FROM ${ref("etf-basic-data")}
+),
+`net-asset-value` AS (
+    SELECT 
+        n_fund_code, -- PK
+        s_currency -- PK
+    FROM ${ref("net-asset-value")}
+),
+`etf-coding` AS (
+    SELECT 
+        etf_code, -- PK
+        isin
+    FROM ${ref("etf-coding")}
+),
+`etf-informative-data` AS (
+    SELECT 
+        etf_code -- PK
+    FROM ${ref("etf-informative-data")}
+),
+`funds` AS (
+    SELECT 
+        isin -- PK
+    FROM ${ref("funds")}
+),
+`countries` AS (
+    SELECT 
+        deprecated_n_afb_country_code -- PK
+    FROM ${ref("countries")}
+),
+`currency-exchange` AS (
+    SELECT 
+        s_currency_iso3 -- PK
+    FROM ${ref("currency-exchange")}
+),
+`afb-dimp-etp-catalogue-v2` AS (
+    SELECT 
+        `afb-security-id` -- PK
+    FROM ${ref("afb-dimp-etp-catalogue-v2")}
+)
+
+SELECT
+    eo.distributor_code,
+    eo.product_code,
+    eo.num_opera,
+    eo.etf_code,
+    eo.country_code,
+    eo.depositary_code,
+    eo.currency_code,
+    d.n_distributor_code,
+    p.n_code AS prod_n_code,
+    p.n_entity_group_code,
+    pg.n_code AS pg_n_code,
+    c.n_client_code,
+    c.n_group_code,
+    tc.cddistri,
+    tc.nuopera,
+    dd.distributor_code AS dd_distributor_code,
+    dd.depositary_code AS dd_depositary_code,
+    ebd.etf_code AS ebd_etf_code,
+    ebd.parent_fund_code,
+    nav.n_fund_code,
+    nav.s_currency,
+    ec.etf_code AS ec_etf_code,
+    ec.isin,
+    eid.etf_code AS eid_etf_code,
+    f.isin AS f_isin,
+    co.deprecated_n_afb_country_code,
+    ce.s_currency_iso3,
+    cat.`afb-security-id`
+FROM `etf-operations` eo
+LEFT JOIN `distributors` d
+    ON eo.distributor_code = d.n_distributor_code
+LEFT JOIN `products` p
+    ON eo.distributor_code = p.n_distributor_code
+    AND eo.product_code = p.n_code
+LEFT JOIN `product-group` pg
+    ON p.n_entity_group_code = pg.n_code
+LEFT JOIN `clients` c
+    ON pg.n_code = c.n_group_code
+LEFT JOIN `tafvc0cap` tc
+    ON eo.distributor_code = tc.cddistri
+    AND eo.num_opera = tc.nuopera
+LEFT JOIN `depositary-data` dd
+    ON eo.distributor_code = dd.distributor_code
+    AND eo.depositary_code = dd.depositary_code
+LEFT JOIN `etf-basic-data` ebd
+    ON eo.etf_code = ebd.etf_code
+LEFT JOIN `net-asset-value` nav
+    ON ebd.parent_fund_code = nav.n_fund_code
+LEFT JOIN `etf-coding` ec
+    ON eo.etf_code = ec.etf_code
+LEFT JOIN `etf-informative-data` eid
+    ON eo.etf_code = eid.etf_code
+LEFT JOIN `funds` f
+    ON ec.isin = f.isin
+LEFT JOIN `countries` co
+    ON eo.country_code = co.deprecated_n_afb_country_code
+LEFT JOIN `currency-exchange` ce
+    ON eo.currency_code = ce.s_currency_iso3
+LEFT JOIN `afb-dimp-etp-catalogue-v2` cat
+    ON eo.etf_code = cat.`afb-security-id`

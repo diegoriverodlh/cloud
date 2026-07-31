@@ -1,0 +1,87 @@
+config {
+  type: "table"
+}
+
+WITH `outstand-balance-monitoring` AS (
+    SELECT 
+        asset_code, -- PK
+        distributor, -- PK
+        n_fund_code, -- PK
+        etf_code -- PK
+    FROM ${ref("outstand-balance-monitoring")}
+),
+`operations` AS (
+    SELECT 
+        n_distributor_code, -- PK
+        n_product_id,
+        n_operation_number,
+        n_fund_code, -- PK
+        n_contract_code, -- PK
+        n_depositary_code,
+        n_country_settlement_,
+        s_currency_payment_co
+    FROM ${ref("operations")}
+),
+`etf-operations` AS (
+    SELECT 
+        distributor_code, -- PK
+        product_code,
+        num_opera, -- PK
+        etf_code,
+        country_code,
+        depositary_code,
+        currency_code
+    FROM ${ref("etf-operations")}
+),
+`tcec0des` AS (
+    SELECT 
+        asset_abbreviation
+    FROM ${ref("tcec0des")}
+),
+`clas-clients` AS (
+    SELECT 
+        distributor_code -- PK
+    FROM ${ref("clas-clients")}
+),
+`listafon` AS (
+    SELECT 
+        afb_security_id -- PK
+    FROM ${ref("listafon")}
+)
+
+SELECT
+    obm.asset_code,
+    obm.distributor,
+    obm.n_fund_code,
+    obm.etf_code,
+    o.n_distributor_code,
+    o.n_product_id,
+    o.n_operation_number,
+    o.n_fund_code AS op_n_fund_code,
+    o.n_contract_code,
+    o.n_depositary_code,
+    o.n_country_settlement_,
+    o.s_currency_payment_co,
+    eo.distributor_code,
+    eo.product_code,
+    eo.num_opera,
+    eo.etf_code AS etf_op_etf_code,
+    eo.country_code,
+    eo.depositary_code AS etf_op_depositary_code,
+    eo.currency_code,
+    t.asset_abbreviation,
+    cc.distributor_code AS cc_distributor_code,
+    l.afb_security_id
+FROM `outstand-balance-monitoring` obm
+LEFT JOIN `operations` o
+    ON obm.distributor = o.n_distributor_code
+    AND obm.n_fund_code = o.n_fund_code
+LEFT JOIN `etf-operations` eo
+    ON obm.distributor = eo.distributor_code
+    AND obm.etf_code = eo.etf_code
+LEFT JOIN `tcec0des` t
+    ON obm.asset_code = t.asset_abbreviation
+LEFT JOIN `clas-clients` cc
+    ON obm.distributor = cc.distributor_code
+LEFT JOIN `listafon` l
+    ON obm.asset_code = l.afb_security_id

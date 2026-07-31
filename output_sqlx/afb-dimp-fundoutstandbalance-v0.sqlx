@@ -1,0 +1,161 @@
+config {
+  type: "table"
+}
+
+WITH `operations` AS (
+    SELECT 
+        n_distributor_code, -- PK
+        n_product_id,
+        n_operation_number,
+        n_fund_code, -- PK
+        n_contract_code, -- PK
+        n_depositary_code,
+        n_country_settlement_,
+        s_currency_payment_co
+    FROM ${ref("operations")}
+),
+`distributors` AS (
+    SELECT 
+        n_distributor_code -- PK
+    FROM ${ref("distributors")}
+),
+`products` AS (
+    SELECT 
+        n_distributor_code, -- PK
+        n_code, -- PK
+        n_entity_group_code
+    FROM ${ref("products")}
+),
+`product-group` AS (
+    SELECT 
+        n_code -- PK
+    FROM ${ref("product-group")}
+),
+`clients` AS (
+    SELECT 
+        n_client_code, -- PK
+        n_group_code -- PK
+    FROM ${ref("clients")}
+),
+`tcec0ret` AS (
+    SELECT 
+        distrib, -- PK
+        operven, -- PK
+        fondo, -- PK
+        contrato -- PK
+    FROM ${ref("tcec0ret")}
+),
+`net-asset-value` AS (
+    SELECT 
+        n_fund_code -- PK
+    FROM ${ref("net-asset-value")}
+),
+`depositary-data` AS (
+    SELECT 
+        distributor_code, -- PK
+        depositary_code -- PK
+    FROM ${ref("depositary-data")}
+),
+`fund-coding` AS (
+    SELECT 
+        n_fund_code, -- PK
+        s_isin
+    FROM ${ref("fund-coding")}
+),
+`fund-basic-data` AS (
+    SELECT 
+        n_fund_code -- PK
+    FROM ${ref("fund-basic-data")}
+),
+`fund-informative-data` AS (
+    SELECT 
+        n_fund_code -- PK
+    FROM ${ref("fund-informative-data")}
+),
+`funds` AS (
+    SELECT 
+        isin -- PK
+    FROM ${ref("funds")}
+),
+`countries` AS (
+    SELECT 
+        deprecated_n_afb_country_code -- PK
+    FROM ${ref("countries")}
+),
+`tcec0cap` AS (
+    SELECT 
+        cddistri, -- PK
+        nuopera -- PK
+    FROM ${ref("tcec0cap")}
+),
+`currency-exchange` AS (
+    SELECT 
+        s_currency_iso3 -- PK
+    FROM ${ref("currency-exchange")}
+)
+
+SELECT
+    o.n_distributor_code,
+    o.n_product_id,
+    o.n_operation_number,
+    o.n_fund_code,
+    o.n_contract_code,
+    o.n_depositary_code,
+    o.n_country_settlement_,
+    o.s_currency_payment_co,
+    d.n_distributor_code AS dist_n_distributor_code,
+    p.n_code AS prod_n_code,
+    p.n_entity_group_code,
+    pg.n_code AS pg_n_code,
+    c.n_client_code,
+    c.n_group_code,
+    tr.distrib,
+    tr.operven,
+    tr.fondo,
+    tr.contrato,
+    nav.n_fund_code AS nav_n_fund_code,
+    dd.distributor_code AS dd_distributor_code,
+    dd.depositary_code AS dd_depositary_code,
+    fc.s_isin,
+    fbd.n_fund_code AS fbd_n_fund_code,
+    fid.n_fund_code AS fid_n_fund_code,
+    f.isin,
+    co.deprecated_n_afb_country_code,
+    tc.cddistri AS tc_cddistri,
+    tc.nuopera AS tc_nuopera,
+    ce.s_currency_iso3
+FROM `operations` o
+LEFT JOIN `distributors` d
+    ON o.n_distributor_code = d.n_distributor_code
+LEFT JOIN `products` p
+    ON o.n_distributor_code = p.n_distributor_code
+    AND o.n_product_id = p.n_code
+LEFT JOIN `product-group` pg
+    ON p.n_entity_group_code = pg.n_code
+LEFT JOIN `clients` c
+    ON pg.n_code = c.n_group_code
+LEFT JOIN `tcec0ret` tr
+    ON o.n_distributor_code = tr.distrib
+    AND o.n_operation_number = tr.operven
+    AND o.n_fund_code = tr.fondo
+    AND o.n_contract_code = tr.contrato
+LEFT JOIN `net-asset-value` nav
+    ON o.n_fund_code = nav.n_fund_code
+LEFT JOIN `depositary-data` dd
+    ON o.n_distributor_code = dd.distributor_code
+    AND o.n_depositary_code = dd.depositary_code
+LEFT JOIN `fund-coding` fc
+    ON o.n_fund_code = fc.n_fund_code
+LEFT JOIN `fund-basic-data` fbd
+    ON o.n_fund_code = fbd.n_fund_code
+LEFT JOIN `fund-informative-data` fid
+    ON o.n_fund_code = fid.n_fund_code
+LEFT JOIN `funds` f
+    ON fc.s_isin = f.isin
+LEFT JOIN `countries` co
+    ON o.n_country_settlement_ = co.deprecated_n_afb_country_code
+LEFT JOIN `tcec0cap` tc
+    ON o.n_distributor_code = tc.cddistri
+    AND o.n_operation_number = tc.nuopera
+LEFT JOIN `currency-exchange` ce
+    ON o.s_currency_payment_co = ce.s_currency_iso3

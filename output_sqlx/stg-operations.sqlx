@@ -1,0 +1,36 @@
+config {
+  type: "table",
+  name: "stg-operations",
+  schema: "staging",
+  description: "Tabla staging con las transacciones y operaciones financieras.",
+  tags: ["staging", "operations"],
+  partitionBy: "DATE(operation_date)",
+  clusterBy: ["fund_code"],
+  columns: {
+    operation_id: "ID de la operación",
+    client_id: "ID del cliente asociado",
+    fund_code: "Código del fondo de inversión",
+    amount: "Monto de la operación",
+    operation_date: "Fecha y hora de la operación"
+  }
+}
+
+WITH source_data AS (
+  SELECT
+    operation_id,
+    client_id,
+    fund_code,
+    amount,
+    operation_date
+  FROM
+    ${ref("raw-operations")}
+)
+
+SELECT
+  operation_id,
+  client_id,
+  fund_code,
+  amount,
+  operation_date
+FROM
+  source_data

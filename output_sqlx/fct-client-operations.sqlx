@@ -1,0 +1,48 @@
+config {
+  type: "table",
+  schema: "marts",
+  name: "fct-client-operations",
+  description: "Tabla de hechos que consolidó operaciones financieras con los datos del cliente.",
+  tags: ["marts", "finance"],
+  partitionBy: "DATE(operation_date)",
+  clusterBy: ["distributor_code", "fund_code"],
+  columns: {
+    operation_id: "Identificador único de la operación",
+    client_id: "Identificador del cliente",
+    client_name: "Nombre completo del cliente",
+    distributor_code: "Código de distribuidor",
+    fund_code: "Fondo invertido",
+    amount: "Importe total",
+    operation_date: "Fecha de la transacción"
+  }
+}
+
+WITH clients AS (
+  SELECT
+    client_id,
+    client_name,
+    distributor_code
+  FROM ${ref("stg-clients")}
+),
+
+operations AS (
+  SELECT
+    operation_id,
+    client_id,
+    fund_code,
+    amount,
+    operation_date
+  FROM ${ref("stg-operations")}
+)
+
+SELECT
+  o.operation_id,
+  c.client_id,
+  c.client_name,
+  c.distributor_code,
+  o.fund_code,
+  o.amount,
+  o.operation_date
+FROM operations o
+LEFT JOIN clients c
+  ON o.client_id = c.client_id

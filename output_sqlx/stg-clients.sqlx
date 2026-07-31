@@ -1,0 +1,30 @@
+config {
+  type: "table",
+  name: "stg-clients",
+  schema: "staging",
+  description: "Tabla staging con información básica normalizada de clientes.",
+  tags: ["staging", "clients"],
+  partitionBy: "DATE(created_at)",
+  columns: {
+    client_id: "Identificador único del cliente",
+    client_name: "Nombre del cliente",
+    distributor_code: "Código del distribuidor asignado",
+    created_at: "Fecha de registro del cliente"
+  }
+}
+
+WITH source_data AS (
+  SELECT
+    client_id,
+    client_name,
+    distributor_code,
+    created_at
+  FROM ${ref("raw-clients")}
+)
+
+SELECT
+  client_id,
+  UPPER(client_name) AS client_name,
+  distributor_code,
+  created_at
+FROM source_data

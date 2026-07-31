@@ -1,0 +1,34 @@
+config {
+  type: "incremental",
+  schema: "marts_dataset",
+  description: "Tabla incremental de hechos de ventas",
+  tags: ["marts", "sales"],
+  assertions: {
+    uniqueKey: ["sale_id"]
+  },
+  columns: {
+    sale_id: "ID único de venta",
+    order_date: "Fecha de la transacción",
+    revenue_eur: "Ingresos netos"
+  }
+}
+
+WITH source_data AS (
+  SELECT
+    order_id AS sale_id,
+    order_date,
+    total_amount AS revenue_eur,
+    order_status
+  FROM
+    ${ref("stg_orders")}
+)
+
+SELECT
+  sale_id,
+  order_date,
+  revenue_eur
+FROM
+  source_data
+WHERE
+  order_status = 'COMPLETED'
+  ${when(incremental(), `and order_date > (select max(order_date) from ${self()})`)}

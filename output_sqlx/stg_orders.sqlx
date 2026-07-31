@@ -1,0 +1,27 @@
+config {
+  type: "table",
+  schema: "staging_dataset",
+  description: "Tabla de pedidos procesados y normalizados",
+  columns: {
+    order_id: "Identificador único del pedido",
+    customer_id: "ID del cliente que realizó la compra",
+    order_date: "Fecha en que se realizó el pedido",
+    total_amount: "Monto total del pedido sumando impuestos",
+    order_status: "Estado del pedido en mayúsculas (COMPLETED, PENDING, CANCELLED)"
+  },
+  assertions: {
+    uniqueKey: ["order_id"],
+    nonNull: ["order_id", "customer_id", "order_date"]
+  }
+}
+
+SELECT
+  CAST(id AS STRING) AS order_id,
+  CAST(user_id AS STRING) AS customer_id,
+  DATE(created_at) AS order_date,
+  COALESCE(subtotal + tax_amount, 0.0) AS total_amount,
+  UPPER(status) AS order_status
+FROM
+  ${ref("raw_dataset", "raw_orders")}
+WHERE
+  created_at >= '2024-01-01'

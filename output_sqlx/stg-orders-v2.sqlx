@@ -1,0 +1,44 @@
+config {
+  type: "table",
+  schema: "staging-dataset",
+  description: "Tabla de pedidos con particionado diario y clustering por cliente",
+  partitionBy: "DATE(order_date)",
+  clusterBy: ["customer_id", "order_status"],
+  tags: ["daily_pipeline", "staging"],
+  assertions: {
+    uniqueKey: ["order_id"],
+    nonNull: ["order_id", "customer_id"]
+  },
+  columns: {
+    order_id: "ID del pedido",
+    customer_id: "ID del cliente",
+    order_date: "Fecha del pedido",
+    order_status: "Estado del pedido"
+  }
+}
+
+WITH raw_data AS (
+  SELECT
+    id,
+    user_id,
+    created_at,
+    status
+  FROM ${ref("raw-orders")}
+  WHERE status != 'TEST'
+),
+
+cleaned_data AS (
+  SELECT
+    CAST(id AS STRING) AS order_id,
+    CAST(user_id AS STRING) AS customer_id,
+    TIMESTAMP(created_at) AS order_date,
+    UPPER(status) AS order_status
+  FROM raw_data
+)
+
+SELECT
+  order_id,
+  customer_id,
+  order_date,
+  order_status
+FROM cleaned_data

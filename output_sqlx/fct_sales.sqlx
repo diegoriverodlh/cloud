@@ -1,0 +1,29 @@
+config {
+  type: "incremental",
+  schema: "marts_dataset",
+  description: "Tabla de hechos de ventas diarias para análisis de negocio",
+  assertions: {
+    uniqueKey: ["sale_id"],
+    nonNull: ["sale_id", "customer_id", "order_id"]
+  },
+  columns: {
+    sale_id: "Identificador único de la transacción de venta",
+    order_id: "ID del pedido de origen",
+    customer_id: "ID del cliente asociado",
+    net_sale_amount: "Monto neto estimado deduciendo comisiones"
+  }
+}
+
+SELECT
+  GENERATE_UUID() AS sale_id,
+  stg_orders.order_id AS order_id,
+  stg_customers.customer_id AS customer_id,
+  stg_orders.total_amount * 0.85 AS net_sale_amount
+FROM
+  ${ref("stg_orders")} AS stg_orders
+LEFT JOIN
+  ${ref("stg_customers")} AS stg_customers
+ON
+  stg_orders.customer_id = stg_customers.customer_id
+WHERE
+  stg_orders.order_status = 'COMPLETED'
