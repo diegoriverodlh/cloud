@@ -1,0 +1,20 @@
+{
+  "type": "table",
+  "name": "stg_operations",
+  "schema": "staging",
+  "description": "Tabla staging con las transacciones y operaciones financieras.",
+  "columns": [
+    { "name": "operation_id", "type": "INT64", "description": "ID de la operación", "is_pk": true },
+    { "name": "client_id", "type": "INT64", "description": "ID del cliente asociado" },
+    { "name": "fund_code", "type": "STRING", "description": "Código del fondo de inversión" },
+    { "name": "amount", "type": "NUMERIC", "description": "Monto de la operación" },
+    { "name": "operation_date", "type": "TIMESTAMP", "description": "Fecha y hora de la operación" }
+  ],
+  "sql_query": "SELECT operation_id, client_id, fund_code, amount, operation_date FROM `my_project.raw_dataset.raw_operations`",
+  "sqlx_options": {
+    "use_cte": true,
+    "partition_by": "DATE(operation_date)",
+    "cluster_by": ["fund_code"],
+    "tags": ["staging", "operations"]
+  }
+}

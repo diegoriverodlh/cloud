@@ -1,0 +1,24 @@
+{
+  "type": "table",
+  "name": "fct_client_operations",
+  "schema": "marts",
+  "description": "Tabla de hechos que consolidó operaciones financieras con los datos del cliente.",
+  "dependencies": ["stg_clients", "stg_operations"],
+  "columns": [
+    { "name": "operation_id", "type": "INT64", "description": "Identificador único de la operación" },
+    { "name": "client_id", "type": "INT64", "description": "Identificador del cliente" },
+    { "name": "client_name", "type": "STRING", "description": "Nombre completo del cliente" },
+    { "name": "distributor_code", "type": "STRING", "description": "Código de distribuidor" },
+    { "name": "fund_code", "type": "STRING", "description": "Fondo invertido" },
+    { "name": "amount", "type": "NUMERIC", "description": "Importe total" },
+    { "name": "operation_date", "type": "TIMESTAMP", "description": "Fecha de la transacción" }
+  ],
+  "sql_query": "SELECT o.operation_id, c.client_id, c.client_name, c.distributor_code, o.fund_code, o.amount, o.operation_date FROM ${ref('stg_operations')} o LEFT JOIN ${ref('stg_clients')} c ON o.client_id = c.client_id",
+  "sqlx_options": {
+    "use_cte": true,
+    "partition_by": "DATE(operation_date)",
+    "cluster_by": ["distributor_code", "fund_code"],
+    "tags": ["marts", "finance"],
+    "custom_instructions": "Asegúrate de documentar cada columna explícitamente dentro del bloque config en el archivo SQLX generado."
+  }
+}
