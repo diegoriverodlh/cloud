@@ -17,7 +17,8 @@ La solución utiliza una arquitectura orientada a eventos (*event-driven*) y sin
 3. Adapta dinámicamente el *System Prompt* enviado a la API de **Gemini**.
 4. Solicita la generación de código SQLX válido para Dataform.
 5. Guarda el archivo `.sqlx` resultante en una subcarpeta del bucket de salida (`output_sqlx/main/`).
-6. Descarta cualquier archivo no válido en milisegundos para evitar bucles de ejecución infinitos.
+6. Guarda el archivo `.sqlx` resultante en una subcarpeta del repositorio de Dataform y en el Workspace correspondiente (`definitions/output_sqlx/`).
+7. Descarta cualquier archivo no válido en milisegundos para evitar bucles de ejecución infinitos.
 
 ---
 
