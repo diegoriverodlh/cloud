@@ -17,12 +17,12 @@ def deploy_and_run_dataform(sqlx_file_name: str, sqlx_content: str):
 
     repo_path = f"projects/{project_id}/locations/{location}/repositories/{repository_id}"
     workspace_path = f"{repo_path}/workspaces/{workspace_id}"
-    target_file_path = f"definitions/staging/{sqlx_file_name}"
+    target_file_path = f"definitions/output_sqlx/{sqlx_file_name}"
 
     # LIMPIEZA PREVIA: Si existía una versión con guiones (-), la borramos del workspace para evitar duplicados
     hyphenated_file_name = sqlx_file_name.replace("_", "-")
     if hyphenated_file_name != sqlx_file_name:
-        legacy_path = f"definitions/staging/{hyphenated_file_name}"
+        legacy_path = f"definitions/output_sqlx/{hyphenated_file_name}"
         try:
             client.delete_file(
                 request={"workspace": workspace_path, "path": legacy_path}
@@ -113,9 +113,9 @@ def parse_sqlx_files_from_response(
                 filename = f"{filename}.sqlx"
 
             # NORMALIZACIÓN: Reemplazar guiones '-' por '_' y forzar minúsculas
-            filename = filename.lower().replace("-", "_")
-            filename = re.sub(r"[^a-zA-Z0-9_\.]", "_", filename)
-            filename = re.sub(r"_+", "_", filename)
+            filename = filename.lower().replace("_", "-")
+            filename = re.sub(r"[^a-zA-Z0-9_\.]", "-", filename)
+            # filename = re.sub(r"_+", "_", filename)
 
             cleaned_content = content.strip()
             cleaned_content = re.sub(r"^```(?:sqlx|sql)?\s*", "", cleaned_content)
@@ -125,9 +125,9 @@ def parse_sqlx_files_from_response(
     else:
         # Fallback normalizado
         filename = default_filename.replace(".pdf", ".sqlx").replace(".json", ".sqlx")
-        filename = filename.lower().replace("-", "_")
-        filename = re.sub(r"[^a-zA-Z0-9_\.]", "_", filename)
-        filename = re.sub(r"_+", "_", filename)
+        filename = filename.lower().replace("_", "-")
+        filename = re.sub(r"[^a-zA-Z0-9_\.]", "-", filename)
+        # filename = re.sub(r"_+", "_", filename)
 
         content = response_text.strip()
         content = re.sub(r"^```(?:sqlx|sql)?\s*", "", content)
@@ -180,7 +180,7 @@ def generate_sqlx_from_json(event, context=None):
             "3. Estructura el bloque config {} utilizando las propiedades dadas en el JSON.",
             "4. Usa la función ref() para declarar y usar las dependencias proporcionadas en la consulta SQL principal.",
             "5. Documenta las columnas dentro del bloque config empleando la estructura de Dataform.",
-            "6. REGLA DE NOMBRADO: Usa exclusivamente snake_case (minúsculas y guiones bajos '_'). NUNCA uses guiones medios '-' en nombres de archivo ni en referencias."
+            "6. REGLA DE NOMBRADO: Usa exclusivamente minúsculas y guiones medios '-'. NUNCA uses guiones bajos '_' en nombres de archivo ni en referencias."
         ]
 
         options = json_data.get("sqlx_options", {})
@@ -212,48 +212,67 @@ def generate_sqlx_from_json(event, context=None):
 
         system_instruction = """
 Rol: Actúa como un experto en SQL, Dataform (SQLX) y modelado de datos.
-Tu tarea es analizar el PDF adjunto (que contiene un diagrama de un modelo de datos) e implementar el SQLX de las tablas finales siguiendo exactamente la estructura representada en el documento.
+Tu tarea es analizar el PDF adjunto (que contiene un diagrama de un modelo de datos) e implementar el SQLX de las tablas finales siguiendo la estructura representada en el documento.
 
 --- REGLAS DE NOMBRADO OBLIGATORIAS (SNAKE_CASE) ---
-- TODOS los nombres de archivos, tablas, CTEs y funciones ref() DEBEN estar en MINÚSCULAS y usar GUIONES BAJOS (`_`). 
-- NUNCA uses guiones medios (`-`), espacios ni caracteres especiales. Ejemplo correcto: `=== FILE: mi_tabla_final.sqlx ===`. Ejemplo incorrecto: `=== FILE: mi-tabla-final.sqlx ===`.
+- TODOS los nombres de archivos, tablas, CTEs y funciones ref() DEBEN estar en MINÚSCULAS y usar GUIONES MEDIOS (`-`). 
+- NUNCA uses guiones bajos (`_`), espacios ni caracteres especiales. Ejemplo correcto: `=== FILE: mi-tabla-final.sqlx ===`.
 
 --- REGLA DE SALIDA OBLIGATORIA ---
-- NO incluyas introducciones, ni saludos, ni explicaciones al inicio o al final.
-- Tu respuesta DEBE COMENZAR DIRECTAMENTE con la etiqueta del primer archivo: === FILE: nombre_tabla_final.sqlx ===
+- NO incluyas introducciones, saludos ni explicaciones al inicio o al final.
+- Tu respuesta DEBE COMENZAR DIRECTAMENTE con la etiqueta del primer archivo: === FILE: nombre-tabla-final.sqlx ===
 
---- CÓMO INTERPRETAR EL PDF ---
-El documento está compuesto por varios recuadros. Cada recuadro representa una tabla.
-Dentro de cada recuadro encontrarás:
-- El nombre de la tabla.
-- Los campos que contiene la tabla.
-- En algunos casos, tablas que sirven como origen de otras tablas.
-- Flechas que conectan campos entre distintas tablas.
+--- EXTRACCIÓN DE CAMPOS (REGLA CRÍTICA) ---
+1. **EXTRACCIÓN COMPLETA**: Debes extraer **TODOS Y CADA UNO** de los campos que aparecen escritos dentro del recuadro de cada tabla en el PDF.
+2. **NUNCA OMITAS CAMPOS**: Aunque un campo no participe en una condición de JOIN ni sea Primary Key (PK), DEBES incluirlo obligatoriamente en la lista del SELECT dentro de su respectivo CTE y en el SELECT final.
+3. NUNCA utilices `SELECT *`. Lista explícitamente cada campo respetando el nombre exacto del diagrama.
 
---- TIPOS DE TABLAS ---
-1. Tablas intermedias (CTEs):
-   - Son tablas que sirven como origen para construir otra tabla.
-   - NO deben devolverse como archivos independientes.
-   - Únicamente deben utilizarse como CTE (WITH ... AS (...)) dentro del SQLX de la tabla final correspondiente.
-2. Tablas finales:
-   - Son las tablas objetivo que deben generarse.
-   - Debes devolver un único archivo SQLX por cada tabla final.
+--- REGLA DE COBERTURA DE TABLAS (MUY IMPORTANTE) ---
+1. **ESCANEO COMPLETO DE TABLAS ORIGEN**: Revisa **TODAS y CADA UNA** de las cajas/recuadros que tengan flechas apuntando hacia el modelo objetivo.
+2. **RAMAS PARALELAS**: Si existen tablas origen paralelas (como `operations` y `etfoperations`), DEBES crear un CTE para CADA UNA de ellas e incluirlas en la consulta final sin ignorar ninguna.
+3. **INCLUSIÓN DE CAMPOS**: Ninguna tabla o campo presente en el diagrama debe quedarse fuera del código final.
 
---- RELACIONES ENTRE TABLAS ---
-- Las flechas del diagrama representan condiciones JOIN. Utiliza exclusivamente las relaciones explícitas.
+--- CÓMO INTERPRETAR Y CONSTRUIR EL MODELO ---
+1. **Tablas intermedias (CTEs)**:
+   - Convierte cada tabla origen intermedia en un CTE (`WITH ... AS (...)`).
+   - Marca como PK en un comentario si toca en ese campo pero en la tabla correspondiente, es decir si en un cte un campo no es pk pero en otra con la que se haga un join si SOLO se pone en la que corresponda
+   - En el `SELECT` del CTE, incluye **todas** las columnas que contiene la caja de esa tabla en el PDF. Usa `${ref("nombre_tabla")}` como origen.
+2. **Tablas finales**:
+   - Para cada tabla final del diagrama, crea un archivo `.sqlx`.
+   - Realiza los `LEFT JOIN` / `INNER JOIN` utilizando **únicamente** las relaciones indicadas por las flechas del diagrama.
+   - En el `SELECT` final de la tabla, proyecta **todas las columnas traídas por los CTEs**, asignándoles su alias correspondiente (ej. `o.n_product_id`, `o.n_contract_code`, etc.).
 
---- CONSTRUCCIÓN DE LA TABLA FINAL ---
-Estructura esperada por cada tabla final:
+--- ESTRUCTURA ESPERADA ---
 
-=== FILE: nombre_tabla_final.sqlx ===
+=== FILE: nombre-tabla-final.sqlx ===
 config {
   type: "table"
 }
 
-WITH tabla_1 AS (
-    SELECT campo1, campo2 FROM ${ref("tabla_1")}
+WITH tabla_origen_1 AS (
+    SELECT 
+        campo_pk,
+        campo_join,
+        campo_informativo_1,
+        campo_informativo_2
+    FROM ${ref("tabla_origen_1")}
+),
+tabla_origen_2 AS (
+    SELECT 
+        campo_join,
+        campo_adicional
+    FROM ${ref("tabla_origen_2")}
 )
-SELECT t1.campo1 FROM tabla_1 t1
+
+SELECT
+    t1.campo_pk,
+    t1.campo_join,
+    t1.campo_informativo_1,
+    t1.campo_informativo_2,
+    t2.campo_adicional
+FROM tabla_origen_1 t1
+LEFT JOIN tabla_origen_2 t2
+    ON t1.campo_join = t2.campo_join
 """
 
         pdf_part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
@@ -261,8 +280,9 @@ SELECT t1.campo1 FROM tabla_1 t1
 Analiza el PDF adjunto con el diagrama del modelo de datos y genera el código SQLX para CADA UNA de las tablas finales presentes en el gráfico.
 
 Recuerda:
-- Antepone obligatoriamente `=== FILE: nombre_tabla_final.sqlx ===` inmediatamente antes de cada archivo generado.
-- Usa estrictamente guiones bajos (`_`) en lugar de guiones medios (`-`).
+- Antepone obligatoriamente `=== FILE: nombre-tabla-final.sqlx ===` inmediatamente antes de cada archivo generado.
+- Extrae TODAS las columnas visualizadas en cada recuadro del PDF sin ignorar ninguna.
+- Usa estrictamente snake_case (guiones medios `-` y minúsculas) en todos los nombres de archivos y tablas.
 """
         gemini_contents = [pdf_part, user_prompt_pdf]
 
