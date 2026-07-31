@@ -54,7 +54,7 @@ La solución utiliza una arquitectura orientada a eventos (*event-driven*) y sin
  │ GCS Output: output_sqlx/main/*.sqlx    │
  └───────────────────┬────────────────────┘
                      │
-                     ▼ (MEdiante el Main_v2.py)
+                     ▼ (Mediante el Main_v2.py o superiores)
  ┌────────────────────────────────────────┐
  │ Insercción en Dataforma                │
  └────────────────────────────────────────┘
