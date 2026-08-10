@@ -1235,7 +1235,7 @@ except Exception as e:
 ---
 
 ## 7. Evidencia de Ejecución en Registros (Cloud Logging)
-Los logs de auditoría en Cloud Run / Cloud Functions confirman la ejecución paralela y la adaptación del prompt dinámico para los modelos v2:
+Los logs de auditoría en Cloud Run / Cloud Functions confirman la ejecución paralela y la adaptación del prompt dinámico para los modelos v2 o superiores:
 
 ```text
 INFO 2026-07-31T09:34:39.659356Z [httpRequest.requestMethod: POST] [httpRequest.status: 200] [httpRequest.responseSize: 130 B] [httpRequest.latency: 52.651 s] [httpRequest.userAgent: APIs-Google; (+https://developers.google.com/webmasters/APIs-Google.html)] https://function-2-se5qd5x3ca-ew.a.run.app/?__GCP_CloudEventsMode=GCS_NOTIFICATION
